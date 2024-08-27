@@ -1,5 +1,3 @@
-// Consola de linux
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -9,22 +7,31 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-// Funcion de consola
+#include <readline/readline.h>
+#include <readline/history.h>
 
 int main()
 {
-
     while (true)
     {
-        std::string comando;
-        std::cout << "Ingrese un comando: ";
-
-        // Leer comando, si no hay sigue corriendo
-        if (!std::getline(std::cin, comando))
+        // Usamos readline para mostrar el prompt y leer el comando
+        char *input = readline("Ingrese un comando: ");
+        if (!input)
         {
             continue;
         }
+
+        std::string comando(input);
+
+        // Agregamos el comando al historial
+        if (!comando.empty())
+        {
+            add_history(comando.c_str());
+        }
+
+        // Liberamos la memoria asignada por readline
+        free(input);
+
         // Si se presiona enter y no hay comando, continua
         if (comando.empty())
         {
@@ -35,6 +42,7 @@ int main()
         {
             break;
         }
+
         // Se crea un vector de vectores de strings para almacenar los comandos
         std::vector<std::vector<std::string>> comandos;
 
@@ -57,14 +65,15 @@ int main()
             }
         }
         comandos.push_back(comando_actual);
+
         // Creamos un vector de pipes
         std::vector<int[2]> pipes(comandos.size() - 1);
         // Se crea un vector de procesos
         std::vector<pid_t> pids(comandos.size());
+
         // Se crea un ciclo para recorrer los comandos
         for (int i = 0; i < comandos.size(); i++)
         {
-
             // Se crea un proceso
             pids[i] = fork();
             // Si es el proceso hijo
@@ -78,13 +87,11 @@ int main()
                 if (i > 0)
                 {
                     dup2(pipes[i - 1][0], STDIN_FILENO);
-
                     close(pipes[i - 1][1]);
                 }
                 if (i < comandos.size() - 1)
                 {
                     dup2(pipes[i][1], STDOUT_FILENO);
-
                     close(pipes[i][0]);
                 }
 
