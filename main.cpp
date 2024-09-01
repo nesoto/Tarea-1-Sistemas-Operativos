@@ -9,6 +9,13 @@
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <algorithm>
+#include <set>
+#include <filesystem>
+
+const std::filesystem::path ARCHIVO_FAVORITOS = "misfavoritos.txt";
+
+// Funcion favs para guardar los comandos favoritos en un archivo, si el archivo no existe lo crea y si el comando ya existe no lo guarda
 
 int main()
 {
@@ -65,6 +72,141 @@ int main()
             }
         }
         comandos.push_back(comando_actual);
+
+        if (comandos[0][0] == "favs")
+        {
+            if (comandos[0].size() < 2)
+            {
+                std::cerr << "Error: Debe especificar un subcomando" << std::endl;
+                continue;
+            }
+            // Crear archivo para comandos favoritos
+            if (comandos[0][1] == "crear")
+            {
+                std::ofstream archivo(comandos[0][2]);
+                archivo.close();
+                std::cout << "Archivo creado en: " << comandos[0][2] << std::endl;
+            }
+            // Mostrar lista de comandos favoritos
+            else if (comandos[0][1] == "mostrar")
+            {
+                std::ifstream archivo(ARCHIVO_FAVORITOS);
+                std::string linea;
+                int i = 1;
+                while (std::getline(archivo, linea))
+                {
+                    std::cout << i << ". " << linea << std::endl;
+                    i++;
+                }
+                archivo.close();
+            }
+            // Eliminar comandos favoritos por número
+            else if (comandos[0][1] == "eliminar")
+            {
+                std::vector<int> indices_a_eliminar;
+                std::istringstream iss(comandos[0][2]);
+                std::string numero;
+                while (std::getline(iss, numero, ','))
+                {
+                    indices_a_eliminar.push_back(std::stoi(numero) - 1);
+                }
+
+                std::ifstream archivo(ARCHIVO_FAVORITOS);
+                std::vector<std::string> nuevos_comandos;
+                std::string linea;
+                int index = 0;
+                while (std::getline(archivo, linea))
+                {
+                    if (std::find(indices_a_eliminar.begin(), indices_a_eliminar.end(), index) == indices_a_eliminar.end())
+                    {
+                        nuevos_comandos.push_back(linea);
+                    }
+                    index++;
+                }
+                archivo.close();
+
+                std::ofstream archivo2(ARCHIVO_FAVORITOS);
+                for (const auto &cmd : nuevos_comandos)
+                {
+                    archivo2 << cmd << std::endl;
+                }
+                archivo2.close();
+                std::cout << "Comandos eliminados." << std::endl;
+            }
+            // Buscar comandos favoritos
+            else if (comandos[0][1] == "buscar")
+            {
+                std::ifstream archivo(ARCHIVO_FAVORITOS);
+                std::string linea;
+                while (std::getline(archivo, linea))
+                {
+                    if (linea.find(comandos[0][2]) != std::string::npos)
+                    {
+                        std::cout << linea << std::endl;
+                    }
+                }
+                archivo.close();
+            }
+            // Borrar todos los comandos favoritos
+            else if (comandos[0][1] == "borrar")
+            {
+                std::ofstream archivo(ARCHIVO_FAVORITOS, std::ios::trunc);
+                archivo.close();
+                std::cout << "Todos los comandos favoritos han sido borrados." << std::endl;
+            }
+            // Ejecutar un comando favorito por su número
+            else if (comandos[0][1] == "ejecutar")
+            {
+                std::ifstream archivo(ARCHIVO_FAVORITOS);
+                std::string linea;
+                std::vector<std::string> comandos_favoritos;
+                while (std::getline(archivo, linea))
+                {
+                    comandos_favoritos.push_back(linea);
+                }
+                archivo.close();
+                std::string comando_a_ejecutar = comandos_favoritos[std::stoi(comandos[0][2]) - 1];
+                std::cout << "Ejecutando: " << comando_a_ejecutar << std::endl;
+                system(comando_a_ejecutar.c_str());
+            }
+            // Cargar comandos favoritos desde el archivo
+            else if (comandos[0][1] == "cargar")
+            {
+                std::ifstream archivo(ARCHIVO_FAVORITOS);
+                std::string linea;
+                while (std::getline(archivo, linea))
+                {
+                    std::cout << linea << std::endl;
+                }
+                archivo.close();
+            }
+            // Guardar el historial de la sesión actual en los favoritos
+            else if (comandos[0][1] == "guardar")
+            {
+                std::ifstream archivo(ARCHIVO_FAVORITOS);
+                std::set<std::string> comandos_unicos;
+                std::string linea;
+                while (std::getline(archivo, linea))
+                {
+                    comandos_unicos.insert(linea);
+                }
+                archivo.close();
+
+                std::ofstream archivo_escritura(ARCHIVO_FAVORITOS, std::ios::app);
+                HIST_ENTRY **historial = history_list();
+                for (int i = 0; historial[i] != NULL; i++)
+                {
+                    std::string comando = historial[i]->line;
+                    if (comandos_unicos.find(comando) == comandos_unicos.end())
+                    {
+                        archivo_escritura << comando << std::endl;
+                        comandos_unicos.insert(comando);
+                    }
+                }
+                archivo_escritura.close();
+                std::cout << "Historial guardado en favoritos." << std::endl;
+            }
+        }
 
         // Creamos un vector de pipes
         std::vector<int[2]> pipes(comandos.size() - 1);
