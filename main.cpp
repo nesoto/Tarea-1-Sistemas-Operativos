@@ -15,8 +15,6 @@
 
 const std::filesystem::path ARCHIVO_FAVORITOS = "misfavoritos.txt";
 
-// Funcion favs para guardar los comandos favoritos en un archivo, si el archivo no existe lo crea y si el comando ya existe no lo guarda
-
 int main()
 {
     while (true)
@@ -73,6 +71,7 @@ int main()
         }
         comandos.push_back(comando_actual);
 
+        //-------------------------------------------------------------------------------- COMANDO FAVS --------------------------------------------------------------------------------
         if (comandos[0][0] == "favs")
         {
             if (comandos[0].size() < 2)
