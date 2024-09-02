@@ -15,12 +15,16 @@
 #include <thread>
 #include <chrono>
 
+
+//Eliminar el hardcode para que pueda el usuario elegir el path
+//Hacer que se pueda manejar carpetas con '' o con ""
+//Cuando termine el recordatorio no se pegue la shell
 const std::filesystem::path ARCHIVO_FAVORITOS = "misfavoritos.txt";
 
 void manejar_recordatorio(int segundos, const std::string& mensaje) 
 {
     std::this_thread::sleep_for(std::chrono::seconds(segundos));
-    std::cout << "\nRecordatorio: " << mensaje << std::endl;
+    std::cout << "\nRecordatorio: " << mensaje <<"\n"<< std::endl;
 }
 
 // Función para agregar automáticamente comandos a favoritos
@@ -198,7 +202,7 @@ int main()
                 std::string linea;
                 while (std::getline(archivo, linea))
                 {
-                    std::cout << linea << std::endl;
+                    //Agregar los comandos del archivo de favoritos a el historial de la shell actual
                 }
                 archivo.close();
             }
@@ -258,7 +262,8 @@ int main()
 
             // Crear un hilo para manejar el recordatorio
             std::thread recordatorio_thread(manejar_recordatorio, segundos, mensaje);
-            recordatorio_thread.detach(); // Desvincular el hilo para que continúe ejecutándose en segundo plano
+            recordatorio_thread.join(); // Desvincular el hilo para que continúe ejecutándose en segundo plano
+            continue;
         }
 
         if (comando_interno)
