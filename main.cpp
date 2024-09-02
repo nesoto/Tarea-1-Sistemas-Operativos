@@ -12,8 +12,28 @@
 #include <algorithm>
 #include <set>
 #include <filesystem>
+#include <thread>
+#include <chrono>
 
 const std::filesystem::path ARCHIVO_FAVORITOS = "misfavoritos.txt";
+
+void manejar_recordatorio(int segundos, const std::string& mensaje) 
+{
+    std::this_thread::sleep_for(std::chrono::seconds(segundos));
+    std::cout << "\nRecordatorio: " << mensaje << std::endl;
+}
+
+// Función para agregar automáticamente comandos a favoritos
+void agregar_a_favoritos(const std::string& comando) 
+{
+    if (comando.substr(0, 5) != "favs " && comando != "exit")
+    {
+        std::ofstream archivo(ARCHIVO_FAVORITOS, std::ios::app);
+        archivo << comando << std::endl;
+        archivo.close();
+    }
+}
+
 
 int main()
 {
@@ -28,14 +48,14 @@ int main()
 
         std::string comando(input);
 
+        // Liberamos la memoria asignada por readline
+        free(input);
+
         // Agregamos el comando al historial
         if (!comando.empty())
         {
             add_history(comando.c_str());
         }
-
-        // Liberamos la memoria asignada por readline
-        free(input);
 
         // Si se presiona enter y no hay comando, continua
         if (comando.empty())
@@ -72,8 +92,11 @@ int main()
         comandos.push_back(comando_actual);
 
         //-------------------------------------------------------------------------------- COMANDO FAVS --------------------------------------------------------------------------------
+        bool comando_interno = false;
+        
         if (comandos[0][0] == "favs")
         {
+            comando_interno = true;
             if (comandos[0].size() < 2)
             {
                 std::cerr << "Error: Debe especificar un subcomando" << std::endl;
@@ -206,7 +229,44 @@ int main()
                 std::cout << "Historial guardado en favoritos." << std::endl;
             }
         }
+        else if (comandos[0][0] == "set" && comandos[0][1] == "recordatorio")
+        {
+            comando_interno = true;
+            if (comandos[0].size() < 4)
+            {
+                std::cerr << "Error: El comando debe incluir el tiempo y el mensaje" << std::endl;
+                continue;
+            }
 
+            int segundos;
+            try 
+            {
+                segundos = std::stoi(comandos[0][2]);
+            } 
+            catch (const std::invalid_argument&) 
+            {
+                std::cerr << "Error: El tiempo debe ser un número válido" << std::endl;
+                continue;
+            }
+
+            std::string mensaje;
+            for (size_t i = 3; i < comandos[0].size(); ++i) 
+            {
+                mensaje += comandos[0][i] + " ";
+            }
+            mensaje = mensaje.substr(0, mensaje.size() - 1); // Eliminar el espacio final
+
+            // Crear un hilo para manejar el recordatorio
+            std::thread recordatorio_thread(manejar_recordatorio, segundos, mensaje);
+            recordatorio_thread.detach(); // Desvincular el hilo para que continúe ejecutándose en segundo plano
+        }
+
+        if (comando_interno)
+        {
+            continue;
+        }
+
+        agregar_a_favoritos(comando);
         // Creamos un vector de pipes
         std::vector<int[2]> pipes(comandos.size() - 1);
         // Se crea un vector de procesos
