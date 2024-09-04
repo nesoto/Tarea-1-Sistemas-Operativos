@@ -15,20 +15,22 @@
 #include <thread>
 #include <chrono>
 
+// Eliminar el hardcode para que pueda el usuario elegir el path
+// Hacer que se pueda manejar carpetas con '' o con ""
+// Cuando termine el recordatorio no se pegue la shell
 
-//Eliminar el hardcode para que pueda el usuario elegir el path
-//Hacer que se pueda manejar carpetas con '' o con ""
-//Cuando termine el recordatorio no se pegue la shell
-const std::filesystem::path ARCHIVO_FAVORITOS = "misfavoritos.txt";
+// Make that ARCHIVO_FAVORITOS would be created in any folder and not only in the current one
+const std::filesystem::path ARCHIVO_FAVORITOS = std::filesystem::current_path() / "misfavoritos.txt";
 
-void manejar_recordatorio(int segundos, const std::string& mensaje) 
+void manejar_recordatorio(int segundos, const std::string &mensaje)
 {
     std::this_thread::sleep_for(std::chrono::seconds(segundos));
-    std::cout << "\nRecordatorio: " << mensaje <<"\n"<< std::endl;
+    std::cout << "\nRecordatorio: " << mensaje << "\n"
+              << std::endl;
 }
 
 // Función para agregar automáticamente comandos a favoritos
-void agregar_a_favoritos(const std::string& comando) 
+void agregar_a_favoritos(const std::string &comando)
 {
     if (comando.substr(0, 5) != "favs " && comando != "exit")
     {
@@ -37,7 +39,6 @@ void agregar_a_favoritos(const std::string& comando)
         archivo.close();
     }
 }
-
 
 int main()
 {
@@ -97,7 +98,7 @@ int main()
 
         //-------------------------------------------------------------------------------- COMANDO FAVS --------------------------------------------------------------------------------
         bool comando_interno = false;
-        
+
         if (comandos[0][0] == "favs")
         {
             comando_interno = true;
@@ -109,6 +110,22 @@ int main()
             // Crear archivo para comandos favoritos
             if (comandos[0][1] == "crear")
             {
+                if (comandos[0].size() < 3)
+                {
+                    std::cerr << "Error: Debe especificar el nombre del archivo" << std::endl;
+                    continue;
+                }
+                else if (std::filesystem::exists(comandos[0][2]))
+                {
+                    // Make that it can be created in any folder and not only in the current one, also make it so that it can be created with '' or with "" and verefy if the path exist
+                    std::cerr << "Error: El archivo ya existe" << std::endl;
+                    continue;
+                }
+                else if (comandos[0][2].find("/") != std::string::npos)
+                {
+                    std::cerr << "Error: No se puede crear el archivo en esa ubicación" << std::endl;
+                    continue;
+                }
                 std::ofstream archivo(comandos[0][2]);
                 archivo.close();
                 std::cout << "Archivo creado en: " << comandos[0][2] << std::endl;
@@ -202,7 +219,7 @@ int main()
                 std::string linea;
                 while (std::getline(archivo, linea))
                 {
-                    //Agregar los comandos del archivo de favoritos a el historial de la shell actual
+                    // Agregar los comandos del archivo de favoritos a el historial de la shell actual
                 }
                 archivo.close();
             }
@@ -243,18 +260,18 @@ int main()
             }
 
             int segundos;
-            try 
+            try
             {
                 segundos = std::stoi(comandos[0][2]);
-            } 
-            catch (const std::invalid_argument&) 
+            }
+            catch (const std::invalid_argument &)
             {
                 std::cerr << "Error: El tiempo debe ser un número válido" << std::endl;
                 continue;
             }
 
             std::string mensaje;
-            for (size_t i = 3; i < comandos[0].size(); ++i) 
+            for (size_t i = 3; i < comandos[0].size(); ++i)
             {
                 mensaje += comandos[0][i] + " ";
             }
