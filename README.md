@@ -4,12 +4,11 @@
 - Nicolás Soto
 - Alejandro Neira
 - Erick Saldívar
-- Por definir uwu
 ## Como ejecutar
 - Primero se debe instalar la libreria readline, en caso de no tenerla instalada.
-- Para instalar readline en Ubuntu, se debe correr el siguiente comando:
+- Para instalar readline medienta la linea de comandos, se debe correr el siguiente comando:
 ```sudo apt-get install libreadline-dev```
-- Para ejecutar el archivo, primero se debe compilar usando:
+- Para ejecutar el archivo, primero se debe compilar usando en el root del archivo main.cpp:
 ```g++ -o shell main.cpp -lreadline```
 - Luego, para ejecutar el programa, se debe correr:
 ```./shell```
