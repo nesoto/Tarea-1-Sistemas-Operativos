@@ -1,4 +1,5 @@
 # Tarea 1 Sistemas Operativos
+- Disclaimer: Uso preferente en Sistemas con base Linux
 ## Integrantes
 - Nicolás Soto
 - Alejandro Neira

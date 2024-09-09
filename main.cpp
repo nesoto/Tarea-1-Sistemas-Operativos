@@ -220,7 +220,8 @@ int main()
                 while (std::getline(archivo, linea))
                 {
                     // Agregar los comandos del archivo de favoritos a el historial de la shell actual
-                }
+                    add_history(linea.c_str());
+                } 
                 archivo.close();
             }
             // Guardar el historial de la sesión actual en los favoritos
