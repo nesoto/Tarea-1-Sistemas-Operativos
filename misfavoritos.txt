@@ -1,13 +1,7 @@
-favs crear /home/neira/Desktop/Sistemas Operativos/Tarea-1-Sistemas-Operativos/
-favs crear /home/neira/Desktop/"Sistemas Operativos"/"Tarea-1-Sistemas-Operativos"/
-favs crear /home/neira/Desktop/'Sistemas Operativos'/Tarea-1-Sistemas-Operativos/
-favs crear /home/neira/Desktop/Sistemas Operativos/Tarea-1-Sistemas-Operativos/misfavoritos.txt
-favs crear /home/neira/Desktop/Sistemas Operativos/Tarea-1-Sistemas-Operativos/"misfavoritos.txt"
-favs crear /home/neira/Desktop/"Sistemas Operativos"/"Tarea-1-Sistemas-Operativos"/"misfavoritos.txt"
-favs crear /home/neira/Desktop/"Sistemas Operativos"/"Tarea-1-Sistemas-Operativos"/misfavoritos.txt
-favs crear /home/neira/Desktop/"Sistemas Operativos"/Tarea-1-Sistemas-Operativos/misfavoritos.txt
 favs crear misfavoritos.txt
 favs crear misfavoritos2.txt
 favs guardar
-favs borrar
 favs cargar
+cd
+clear
+a
