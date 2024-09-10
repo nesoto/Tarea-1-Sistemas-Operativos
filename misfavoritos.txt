@@ -4,4 +4,3 @@ favs guardar
 favs cargar
 cd
 clear
-a

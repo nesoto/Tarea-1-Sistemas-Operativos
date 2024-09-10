@@ -296,68 +296,66 @@ int main()
         {
             continue;
         }
+        // ------------------------------ MANEJO DE PIPES -------------------------------------
 
-        // Creamos un vector de pipes
+        //Creamos un vector de pipes
         std::vector<int[2]> pipes(comandos.size() - 1);
-        // Se crea un vector de procesos
+        //Se crea un vector de procesos
         std::vector<pid_t> pids(comandos.size());
 
-        // Se crea un ciclo para recorrer los comandos
-        for (int i = 0; i < comandos.size(); i++)
-        {
-            // Se crea un proceso
-            pids[i] = fork();
-            // Si es el proceso hijo
-            if (pids[i] == -1)
-            {
-                std::cerr << "Error al crear el proceso" << std::endl;
+        // Crear todos los pipes necesarios
+        for (int i = 0; i < comandos.size() - 1; i++) {
+            if (pipe(pipes[i]) == -1) {
+                std::cerr << "Error al crear el pipe" << std::endl;
+                perror("pipe");
                 exit(1);
             }
-            else if (pids[i] == 0)
-            {
-                if (i > 0)
-                {
-                    dup2(pipes[i - 1][0], STDIN_FILENO);
-                    close(pipes[i - 1][1]);
+        }
+
+        //Recorrer los comandos y crear procesos hijos
+        for (int i = 0; i < comandos.size(); i++) {
+            pids[i] = fork();
+
+            if (pids[i] == -1) {
+                std::cerr << "Error al crear el proceso" << std::endl;
+                exit(1);
+            } else if (pids[i] == 0) { //Proceso hijo
+                if (i > 0) { //No es el primer comando
+                    dup2(pipes[i - 1][0], STDIN_FILENO); //Redirige stdin
                 }
-                if (i < comandos.size() - 1)
-                {
-                    dup2(pipes[i][1], STDOUT_FILENO);
-                    close(pipes[i][0]);
+                if (i < comandos.size() - 1) { //No es el ultimo comando
+                    dup2(pipes[i][1], STDOUT_FILENO); //Redirige stdout
                 }
 
-                // Ejecutamos los comandos guardados
+                //Cerrar todos los pipes en el proceso hijo
+                for (int j = 0; j < comandos.size() - 1; j++) {
+                    close(pipes[j][0]);
+                    close(pipes[j][1]);
+                }
+
+                //Preparar argumentos para execvp
                 char **args = new char *[comandos[i].size() + 1];
-                for (int j = 0; j < comandos[i].size(); j++)
-                {
+                for (int j = 0; j < comandos[i].size(); j++) {
                     args[j] = const_cast<char *>(comandos[i][j].c_str());
                 }
                 args[comandos[i].size()] = NULL;
+
                 execvp(args[0], args);
-                // Si hay error
+
+                //Si execvp falla
                 std::cerr << "Error al ejecutar el comando" << std::endl;
                 perror("execvp");
                 delete[] args;
                 exit(1);
             }
-            if (i > 0)
-            {
-                close(pipes[i - 1][0]);
-            }
-            if (i < comandos.size() - 1)
-            {
-                if (pipe(pipes[i]) == -1)
-                {
-                    std::cerr << "Error al crear el pipe" << std::endl;
-                    perror("pipe");
-                    continue;
-                }
-                close(pipes[i][1]);
-            }
         }
-        // Esperar a que los procesos hijos terminen
-        for (int i = 0; i < comandos.size(); i++)
-        {
+        //Cerrar todos los pipes en el proceso padre
+        for (int i = 0; i < comandos.size() - 1; i++) {
+            close(pipes[i][0]);
+            close(pipes[i][1]);
+        }
+        //Esperar a que todos los procesos hijos terminen
+        for (int i = 0; i < comandos.size(); i++) {
             int status;
             waitpid(pids[i], &status, 0);
         }
